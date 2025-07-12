@@ -1,15 +1,15 @@
-name: Run server.js
+name: Fetch GG.deals Data with Puppeteer
 
 on:
-  workflow_dispatch:  # manual trigger
   schedule:
-    - cron: '*/15 * * * *'  # every 15 minutes (optional)
+    - cron: '*/15 * * * *' # every 15 minutes
+  workflow_dispatch: # manual trigger
 
 jobs:
   fetch-data:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Setup Node.js
@@ -18,13 +18,7 @@ jobs:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install
+        run: npm install puppeteer
 
-      - name: Start server in background
-        run: node server.js &
-
-      - name: Wait for server to start
-        run: sleep 5
-
-      - name: Curl proxy endpoint
-        run: curl http://localhost:3000/prices
+      - name: Run Puppeteer fetch script
+        run: node fetch-ggdeals.js
