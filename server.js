@@ -4,11 +4,14 @@ const fetch = require('node-fetch');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Version info — change this manually as needed
-const VERSION = '1.0.1';
+// ✅ Add CORS for all routes
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  next();
+});
 
 app.get('/', (req, res) => {
-  res.send(`🟢 GG.deals proxy is running — v${VERSION}`);
+  res.send('🟢 GG.deals proxy running — v1.0.2');
 });
 
 app.get('/prices', async (req, res) => {
@@ -27,23 +30,14 @@ app.get('/prices', async (req, res) => {
       }
     );
 
-    if (!response.ok) {
-      const text = await response.text();
-      console.error(`GG.deals returned ${response.status}: ${text}`);
-      return res.status(502).json({
-        error: `GG.deals status ${response.status}`,
-        message: text,
-      });
-    }
-
     const data = await response.json();
     res.json(data);
   } catch (error) {
-    console.error('Proxy fetch error:', error.message);
+    console.error('Proxy fetch error:', error);
     res.status(500).json({ error: 'Failed to fetch data from gg.deals' });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ GG.deals proxy listening on port ${PORT} — v${VERSION}`);
+  console.log(`✅ GG.deals proxy listening on port ${PORT}`);
 });
