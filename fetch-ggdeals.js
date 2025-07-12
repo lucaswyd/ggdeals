@@ -1,38 +1,47 @@
 const puppeteer = require('puppeteer');
 
 async function fetchGGDealsData() {
+  const url = 'https://gg.deals/game/ea-sports-college-football-26-xbox-series/';
+
   const browser = await puppeteer.launch({
+    headless: 'new', // for newer Puppeteer versions
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
+
   const page = await browser.newPage();
 
-  await page.goto('https://gg.deals/game/ea-sports-college-football-26-xbox-series/', {
-    waitUntil: 'networkidle0',
-  });
+  let apiData = null;
 
-  const data = await page.evaluate(async () => {
-    const response = await fetch(
-      '/us/games/chartHistoricalData/375527/?showKeyshops=1',
-      {
-        headers: {
-          Accept: 'application/json, text/javascript, */*; q=0.01',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        credentials: 'same-origin',
+  page.on('response', async (response) => {
+    const request = response.request();
+    const requestUrl = request.url();
+
+    if (requestUrl.includes('/chartHistoricalData/375527')) {
+      try {
+        const json = await response.json();
+        apiData = json;
+      } catch (err) {
+        console.error('❌ Failed to parse JSON:', err.message);
       }
-    );
-    return response.json();
+    }
   });
 
-  await browser.close();
-  return data;
+  try {
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+
+    // Wait a bit to make sure the XHR completes
+    await page.waitForTimeout(5000);
+
+    if (apiData) {
+      console.log('✅ Fetched price data:', JSON.stringify(apiData, null, 2));
+    } else {
+      console.error('❌ Data not found — XHR may have failed or changed.');
+    }
+  } catch (error) {
+    console.error('❌ Error loading page:', error.message);
+  } finally {
+    await browser.close();
+  }
 }
 
-fetchGGDealsData()
-  .then(data => {
-    console.log('Fetched data:', JSON.stringify(data));
-  })
-  .catch(err => {
-    console.error('Error fetching data:', err);
-    process.exit(1);
-  });
+fetchGGDealsData();
