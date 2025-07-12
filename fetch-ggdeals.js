@@ -15,9 +15,16 @@ async function fetchGGDealsData() {
     const request = response.request();
     const requestUrl = request.url();
 
+    // Log all XHR requests for debugging
+    if (request.resourceType() === 'xhr') {
+      console.log('📡 XHR:', requestUrl);
+    }
+
+    // Look for the chartHistoricalData endpoint
     if (requestUrl.includes('/chartHistoricalData/375527')) {
       try {
         const json = await response.json();
+        console.log('✅ Matched data URL:', requestUrl);
         apiData = json;
       } catch (err) {
         console.error('❌ Failed to parse JSON:', err.message);
@@ -28,8 +35,8 @@ async function fetchGGDealsData() {
   try {
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
 
-    // Use setTimeout as fallback
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    // Wait for XHRs to fire
+    await new Promise(resolve => setTimeout(resolve, 8000));
 
     if (apiData) {
       console.log('✅ Fetched price data:', JSON.stringify(apiData, null, 2));
