@@ -1,13 +1,3 @@
-const express = require("express");
-const fetch = require("node-fetch");
-const app = express();
-
-const PORT = process.env.PORT || 3000;
-
-app.get("/", (req, res) => {
-  res.send("🟢 GG.deals proxy running");
-});
-
 app.get("/prices", async (req, res) => {
   try {
     const response = await fetch(
@@ -25,7 +15,9 @@ app.get("/prices", async (req, res) => {
     );
 
     if (!response.ok) {
-      throw new Error(`GG.deals returned status ${response.status}`);
+      const text = await response.text();
+      console.error(`GG.deals returned status ${response.status}: ${text}`);
+      return res.status(502).json({ error: `GG.deals status ${response.status}` });
     }
 
     const data = await response.json();
@@ -34,8 +26,4 @@ app.get("/prices", async (req, res) => {
     console.error("Proxy fetch error:", error);
     res.status(500).json({ error: "Failed to fetch data from gg.deals" });
   }
-});
-
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
 });
