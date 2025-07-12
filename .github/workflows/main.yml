@@ -1,17 +1,24 @@
-name: Fetch GG.deals Data
+name: Run server.js
 
 on:
+  workflow_dispatch:  # manual trigger
   schedule:
-    - cron: '*/15 * * * *'  # every 15 minutes
-  workflow_dispatch:        # manual trigger
+    - cron: '*/15 * * * *'  # every 15 minutes (optional)
 
 jobs:
-  fetch-data:
+  run-server:
     runs-on: ubuntu-latest
     steps:
-      - name: Run curl to fetch data
-        run: |
-          curl 'https://gg.deals/us/games/chartHistoricalData/375527/?showKeyshops=1' \
-            -H 'accept: application/json, text/javascript, */*; q=0.01' \
-            -H 'referer: https://gg.deals/game/ea-sports-college-football-26-xbox-series/' \
-            -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36'
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run server.js
+        run: node server.js
