@@ -1,9 +1,12 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+
+puppeteer.use(StealthPlugin());
 
 async function fetchGGDealsData() {
   const url = 'https://gg.deals/game/ea-sports-college-football-26-xbox-series/';
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: 'new', // Needed for stealth to work better
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
@@ -15,12 +18,10 @@ async function fetchGGDealsData() {
     const request = response.request();
     const requestUrl = request.url();
 
-    // Log all XHR requests for debugging
     if (request.resourceType() === 'xhr') {
       console.log('📡 XHR:', requestUrl);
     }
 
-    // Look for the chartHistoricalData endpoint
     if (requestUrl.includes('/chartHistoricalData/375527')) {
       try {
         const json = await response.json();
@@ -34,14 +35,12 @@ async function fetchGGDealsData() {
 
   try {
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
-
-    // Wait for XHRs to fire
     await new Promise(resolve => setTimeout(resolve, 8000));
 
     if (apiData) {
       console.log('✅ Fetched price data:', JSON.stringify(apiData, null, 2));
     } else {
-      console.error('❌ Data not found — XHR may have failed or changed.');
+      console.error('❌ Data not found — API call may be blocked or delayed.');
     }
   } catch (error) {
     console.error('❌ Error loading page:', error.message);
