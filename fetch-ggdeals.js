@@ -2,9 +2,8 @@ const puppeteer = require('puppeteer');
 
 async function fetchGGDealsData() {
   const url = 'https://gg.deals/game/ea-sports-college-football-26-xbox-series/';
-
   const browser = await puppeteer.launch({
-    headless: 'new', // for newer Puppeteer versions
+    headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
@@ -29,8 +28,8 @@ async function fetchGGDealsData() {
   try {
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
 
-    // Wait a bit to make sure the XHR completes
-    await page.waitForTimeout(5000);
+    // Use setTimeout as fallback
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     if (apiData) {
       console.log('✅ Fetched price data:', JSON.stringify(apiData, null, 2));
